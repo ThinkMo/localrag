@@ -42,7 +42,7 @@ def create_a2a_router(app_internal: FastAPI):
     )
     rpc_app.add_routes_to_app(
         app_internal,
-        agent_card_url="/a2a/.well-known/agent.json",
+        agent_card_url="/a2a/.well-known/agent-card.json",
         rpc_url="/a2a",
     )
 

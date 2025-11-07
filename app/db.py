@@ -35,6 +35,21 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 def get_vector_store():
+    # local mode only support SPARSE_INVERTED_INDEX SPARSE_WAND
+    # local mode only support FLAT IVF_FLAT AUTOINDEX
+    index_params=[{
+        "index_type": "SPARSE_INVERTED_INDEX"
+    },{
+        "index_type": "SPARSE_INVERTED_INDEX"
+    }]
+    if not config.vector_store_uri.endswith("db"):
+        index_params = [{
+            "metric_type": "COSINE",
+            "index_type": "HNSW",
+        },{
+            "metric_type": "BM25",
+            "index_type": "AUTOINDEX",
+        }]
     embeddings = HuggingFaceEmbeddings(
         model_name=config.embedding_model
     )
@@ -45,13 +60,7 @@ def get_vector_store():
         vector_field=["dense", "sparse"],
         auto_id=True,
         drop_old=False,
-        # local mode only support SPARSE_INVERTED_INDEX SPARSE_WAND
-        # local mode only support FLAT IVF_FLAT AUTOINDEX
-        index_params=[{
-            "index_type": "SPARSE_INVERTED_INDEX"
-        },{
-            "index_type": "SPARSE_INVERTED_INDEX"
-        }]
+        index_params=index_params,
     )
     return vector_store
 

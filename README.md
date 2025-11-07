@@ -7,8 +7,8 @@ A simple local rag system, used to verify and improve related rag system technol
 - [x] Use langchain/langgraph + local milvus implement the local rag system.
 - [x] Use streamlit implement the web ui.
 - [x] Hybrid search (vector search + keyword search), RFF for rerank.
+- [x] Use Ragas evaluate the rag system.
 - [ ] Use model based reranker (e.g. ColBERT.).
-- [ ] Evaluation system and evaluation set.
 - [ ] Multi-modal support (e.g. image).
 
 ## 🚀 Quick Start
@@ -26,6 +26,11 @@ export MODEL="model or endpoint"
 
 1. start the server by running `./run.sh`
 2. start streamlit by running `streamlit run streamlit_app.py`
+
+### Evaluation
+
+Use [Ragas](https://docs.ragas.io/en/stable/howtos/applications/evaluate-and-improve-rag/) to evaluate and iteratively improve our rag system.
+
 
 ## 📝 License
 
