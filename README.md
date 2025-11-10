@@ -31,6 +31,12 @@ export MODEL="model or endpoint"
 
 Use [Ragas](https://docs.ragas.io/en/stable/howtos/applications/evaluate-and-improve-rag/) to evaluate and iteratively improve our rag system.
 
+```
+model: "deepseek-V3.1"
+
+Results: 64/66 passed (97.0%)
+```
+
 
 ## 📝 License
 

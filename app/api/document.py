@@ -62,8 +62,8 @@ async def process_file_upload_task(file_path: str, file_name: str, session: Asyn
 
     # 分割文档
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2000,
-        chunk_overlap=200,
+        chunk_size=1024,
+        chunk_overlap=100,
         length_function=len
     )
     for doc in documents:

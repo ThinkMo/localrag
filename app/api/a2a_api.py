@@ -67,6 +67,8 @@ class AgenticRAGExecutor(AgentExecutor):
             skills=skills,  # Only the basic skill for the public card
         )
         self.agent_card = agent_card
+        # sqlite databases only allow one process to access it at a time.
+        # use InMemoryTaskStore instead
         self.task_store = DatabaseTaskStore(engine)
 
     def _validate_request(self, context: RequestContext) -> bool:

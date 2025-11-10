@@ -21,7 +21,8 @@ from a2a.types import (
     Task,
     Message,
 )
-from a2a.utils.message import get_text_parts, get_message_text
+from a2a.utils.message import get_message_text
+from a2a.utils.artifact import get_artifact_text
 
 from app.db import get_vector_store
 from evaluation.a2a_client import RemoteAgentConnection
@@ -29,6 +30,8 @@ from evaluation.a2a_client import RemoteAgentConnection
 
 # Load environment variables
 load_dotenv(".env")
+# semaphore to limit concurrent requests, llm has rate limit
+# semaphore = asyncio.Semaphore(2)
 
 # Set up logging
 logging.basicConfig(
@@ -124,6 +127,7 @@ async def evaluate_rag(row: Dict[str, Any], llm, conn: RemoteAgentConnection) ->
             "message_id": str(uuid.uuid4()),
         },
     }
+    #async with semaphore:
     rag_response = await conn.send_message(
         SendMessageRequest(
             id=str(uuid.uuid4()),
@@ -132,13 +136,12 @@ async def evaluate_rag(row: Dict[str, Any], llm, conn: RemoteAgentConnection) ->
     )
     if isinstance(rag_response.root, SendMessageSuccessResponse):
         if isinstance(rag_response.root.result, Task):
-            parts = []
-            for artifact in rag_response.root.result.artifacts:
-                parts.extend(artifact.parts)
-            rag_response = {
-                "answer" : get_text_parts(parts)
-            }
-        if isinstance(rag_response.root.result, Message):
+            if len(rag_response.root.result.artifacts) > 0:
+                last = rag_response.root.result.artifacts[-1]
+                rag_response = {
+                    "answer" : get_artifact_text(last)
+                }
+        elif isinstance(rag_response.root.result, Message):
             rag_response = {
                 "answer" : get_message_text(rag_response.root.result)
             }
@@ -219,6 +222,7 @@ async def run_experiment(conn, name: Optional[str] = None):
         pass_rate = (pass_count / total_count) * 100 if total_count > 0 else 0
 
         logger.info(f"Results: {pass_count}/{total_count} passed ({pass_rate:.1f}%)")
+        print(f"Results: {pass_count}/{total_count} passed ({pass_rate:.1f}%)")
 
     return experiment_results
 
@@ -229,11 +233,11 @@ def chunk_list_generator(lst, chunk_size):
 
 
 if __name__ == "__main__":
-    import pandas as pd
-    df = pd.read_csv(dataset_path := Path("evaluation/data/huggingface_doc.csv"))
-        
     # Create documents
-    if bool(os.environ.get("INIT_DATA", False)):
+    init_data = os.environ.get("INIT_DATA", "false") == "true"
+    if init_data:
+        import pandas as pd
+        df = pd.read_csv(dataset_path := Path("evaluation/data/huggingface_doc.csv"))
         source_documents = [
             Document(
                 page_content=row["text"],
@@ -242,8 +246,8 @@ if __name__ == "__main__":
             for _, row in df.iterrows()
         ]
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000,
-            chunk_overlap=200,
+            chunk_size=1024,
+            chunk_overlap=100,
             length_function=len
         )
         chunks = text_splitter.split_documents(source_documents)
@@ -251,7 +255,7 @@ if __name__ == "__main__":
 
         for small_chunks in chunk_list_generator(chunks, 1000):
             related_chunks = vector_store.add_documents(small_chunks)
-            print(f"Process: {len(small_chunks)/float(len(chunks))}%, added {len(related_chunks)} chunks to vector store.")
+            print(f"Process: {len(small_chunks)*100/float(len(chunks))}%, added {len(related_chunks)} chunks to vector store.")
 
     conn = RemoteAgentConnection("http://localhost:8000/a2a")
     asyncio.run(run_experiment(conn))

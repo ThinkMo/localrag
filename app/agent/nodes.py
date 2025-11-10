@@ -10,8 +10,10 @@ from app.config.config import Configuration
 from app.agent.prompts import get_qna_citation_system_prompt, get_qna_no_documents_system_prompt
 
 
+config = Configuration.from_runnable_config()
+
+
 def get_llm():
-    config = Configuration.from_runnable_config()
     args = {"model": config.model}
     if config.api_key:
         args["api_key"] = config.api_key

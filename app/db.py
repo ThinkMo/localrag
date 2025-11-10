@@ -25,6 +25,9 @@ engine = create_async_engine(
     config.database_url, connect_args={"autocommit": False}
 )
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+embeddings = HuggingFaceEmbeddings(
+    model_name=config.embedding_model
+)
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
@@ -50,9 +53,6 @@ def get_vector_store():
             "metric_type": "BM25",
             "index_type": "AUTOINDEX",
         }]
-    embeddings = HuggingFaceEmbeddings(
-        model_name=config.embedding_model
-    )
     vector_store = Milvus(
         embedding_function=embeddings,
         connection_args={"uri": config.vector_store_uri},
