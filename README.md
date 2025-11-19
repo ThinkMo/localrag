@@ -8,7 +8,7 @@ A simple local rag system, used to verify and improve related rag system technol
 - [x] Use streamlit implement the web ui.
 - [x] Hybrid search (vector search + keyword search), RFF for rerank.
 - [x] Use Ragas evaluate the rag system.
-- [ ] Use model based reranker (e.g. ColBERT.).
+- [x] Use model based reranker (e.g. ColBERT.).
 - [ ] Multi-modal support (e.g. image).
 
 ## 🚀 Quick Start
@@ -37,6 +37,21 @@ model: "deepseek-V3.1"
 Results: 64/66 passed (97.0%)
 ```
 
+### Use Rerank Model
+
+If you want to use [BAAI/bge-reranker-base](https://huggingface.co/BAAI/bge-reranker-base) as the rerank model, you need to start the model server first.
+
+```
+vllm serve BAAI/bge-reranker-base
+```
+
+Then, set the `RANKER_ENDPOINT` environment variable in `run.sh`.
+
+```
+export RANKER_ENDPOINT="http://xxx:8000"
+```
+
+Apply the patch 'script/langchain_milvus.patch' to langchain_milvus lib, because current langchain_milvus version not support model rerank.
 
 ## 📝 License
 

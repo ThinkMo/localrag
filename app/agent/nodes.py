@@ -105,7 +105,16 @@ async def retrieve_relevant_documents(query: str):
     """Retrieve relevant documents based on the query."""
     vector_store = get_vector_store()
     # rrf ranker, if use model ranker(eg. bge-reranker) need implement by yourself
-    documents = await vector_store.asimilarity_search(query, ranker_type="rrf", timeout=100)
+    if config.ranker_endpoint:
+        documents = await vector_store.asimilarity_search(query, ranker_type="model", ranker_params={
+            "reranker": "model",
+            "provider": "vllm",
+            "queries": [query],
+            "endpoint": config.ranker_endpoint,
+            "truncate_prompt_tokens": 512
+        }, timeout=100)
+    else:
+        documents = await vector_store.asimilarity_search(query, ranker_type="rrf", timeout=100)
     return documents
 
 

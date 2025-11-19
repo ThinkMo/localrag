@@ -26,6 +26,7 @@ class Configuration:
     top_p: float | None = None
     max_retries: int | None = None
     logprobs: bool | None = None
+    ranker_endpoint: str | None = None
 
     @classmethod
     def from_runnable_config(
